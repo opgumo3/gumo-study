@@ -343,3 +343,225 @@ class Elvis {
 ```
 * 간결하고, 추가 노력 없이 직렬화할 수 있고, 복잡한 직렬화 상황이나 리플렉션 공격에서도 싱글턴을 유지할 수 있다. (JVM이 보장)
 * 추천!
+
+  # 4. 인스턴스화를 막으려거든 private 생성자를 사용하라
+## private 생성자를 추가하면 인스턴스화를 막을 수 있다.
+코드에 생성자를 명시하지 않아도, 컴파일러가 자동으로 기본 생성자를 생성한다.
+</br> 그러니 생성자를 private으로 명시해라.
+```java
+public class A {
+    // 인스턴스화 방지용
+    private A() {
+        // 클래스 내에서 생성자를 호출하지 않도록.
+        throw new AssertionError();
+    }
+}
+```
+* 상속 불가능.
+</br> 모든 생성자는 명시적이든 묵시적이든 상위 클래스의 생성자를 호출하기 때문에.
+</br> 하위 클래스에서..
+`There is no default constructor available in '[상위클래스]'`
+
+아래는 Collections, Math 클래스의 private 생성자다.
+```java
+public class Collections {
+    // Suppresses default constructor, ensuring non-instantiability.
+    private Collections() {
+    }
+}
+```
+
+```java
+public final class Math {
+    /**
+     * Don't let anyone instantiate this class.
+     */
+    private Math() {}
+}
+```
+
+# 5. 자원을 직접 명시하지 말고 의존 객체 주입을 사용하라.
+
+### Setter로 사전을 교체하는 방법
+이 방법은 멀티스레드 환경에서 사용할 수 없다.
+> ✔ 사용하는 자원에 따라 동작이 달라지는 클래스에는 정적 유틸리티 클래스나 싱글턴 방식이 적합하지 않다.
+
+### 인스턴스를 생성할 때, 생성자에 필요한 자원을 넘겨주는 방법
+```java
+public class SpellChecker {
+     private static final Dictionary dictionary = new KoreanDictionary();
+
+    public SpellChecker(Dictionary dictionary) {
+        this.dictionary = Objects.requireNonNull(dictionary);
+    }
+
+    public boolean isRight(String word) {...}
+}
+```
+* 의존 객체 주입 패턴.
+* 생성자에 자원이 몇 개든 의존 관계가 어떻든 잘 작동하고, 불변을 보장하여 여러 클라이언트가 의존 객체들을 안심하고 공유할 수 있다.
+</br>
+
+클라이언트가 제공한 팩터리가 생성한 타일들로 구성된 모자이크를 만드는 메서드..
+```java
+public abstract class Tile {
+    abstract void process();
+}
+```
+
+```java
+public class RedTile extends Tile{
+    @Override
+    void process() {
+        System.out.println("RedTile");
+    }
+}
+```
+
+```java
+public abstract class TileFactory implements Supplier<Tile> {
+    @Override
+    public Tile get() {
+        return createTile();
+    }
+
+    abstract Tile createTile();
+}
+```
+
+```java
+public class RedTileFactory extends TileFactory{
+    @Override
+    Tile createTile() {
+        return new RedTile();
+    }
+}
+```
+
+```java
+public class Mosaic {
+    public static void createMosaic(Supplier<? extends Tile> tileFactory) {
+        Tile tile = tileFactory.get();
+        tile.process();
+    }
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Mosaic.createMosaic(new RedTileFactory());
+    }
+}
+```
+
+# 6. 불필요한 객체 생성을 피하라.
+* 똑같은 기능의 객체를 매번 생성하기보다 객체 하나를 재사용하는 편이 나을 때가 많다!
+
+## String
+```java
+String s = new String(""); // 실행될 때마다 새로운 인스턴스를 만든다.
+String s = ""; // String pool. 하나의 String 인스턴스를 사용.
+```
+
+## 캐싱
+
+```java
+String s = "";
+s.mathes(String regex)
+``` 
+생성 비용이 높은 Pattern 인스턴스를 캐싱해서 사용하자.
+```java
+public class A {
+    private static final Pattern pattern = Pattern.compile("...");
+
+    // pattern.matcher()...
+}
+```
+* 메서드가 처음 호출될 때 필드를 초기화하는 '지연초기화'는 코드가 복잡해지고, 성능은 크게 개선되지 않을 때가 많다.
+
+
+## 오토박싱
+* 박싱된 기본 타입보다는 기본 타입을 사용하고, 의도치 않은 오토박싱이 숨어들지 않도록 주의하자.
+* 성능면으로 좋지 않다.
+
+## 자체 객체 풀
+* 코드를 헷갈리게 만들고 메모리 사용량을 늘리고 성능을 떨어뜨릴 수 있어서 자체 객체 풀은 만들지 말자. (아주 무거운 객체가 아닌 이상..)
+* 데이터베이스 연결의 경우는 생성 비용이 워낙 비싸서 재사용하는 편이 낫다.
+
+# 7. 다 쓴 객체 참조를 해제하라.
+* 본인이 쓰고 있지 않는 객체라고 해서, 참조 되지 않는 객체는 아니다.
+* 다 쓴 객체 참조를 null 처리하는 일은 예외적인 경우여야 한다.
+* 참조들 담은 변수를 유효 범위 밖으로 밀어내는 것이 가장 좋은 방법이다.
+* 캐시 외부에서 키를 참조하는 동안만 엔트리가 살아 있는 캐시가 필요한 상황이라면 `WeakHashmap`을 사용해 캐시를 만들자.
+    * 다 쓴 엔트리는 즉시 자동으로 제거될 것이다.
+* `ScheduledThreadPoolExecutor`같은 백그라운드 스레드를 활용해 쓰지 않는 엔트리를 청소하거나, 캐시에 새 엔트리를 추가할 때마다 청소하는 작업을 수행시킬 수 있다.
+    * `LinkedHashpMap`의 `removeEldestEntry`는 후자의 방식으로 처리한다.
+* 리스너와 콜백이 등록만 되고, 명확히 해지되지 않을 수 있다.
+
+
+# 8. finalizer와 cleaner 사용을 피하라
+Finalizer와 Cleaner는 자바의 객체 소멸자다. (java.lang.ref)
+
+* Finalizer는 예측할 수 없고, 상황에 따라 위험할 수 있다.
+* Finalizer의 대안인 Cleaner는 Finalizer보다는 덜 위험하지만 예측할 수 없고 느리다.
+* 즉시 수행된다는 보장이 없다.
+
+> ✔ 상태를 영구적으로 수정하는 작업에서는 절대 Finalizer나 Cleaner에 의존해서는 안된다.
+</br> ex) 파일 닫기..
+
+* 성능이 좋지 않다. AutoCloseable과 비교했을 때, 성능 차이가 심하다.
+* Finalizer를 사용한 클래스는 Finalizer 공격에 노출되어 심각한 보안 문제를 일으킬 수 있다.
+
+## AutoCloseable을 구현하세요.
+* 인스턴스를 다 사용하면 close 메서드를 호출하면 된다.
+* 인스턴스가 닫혔는지 추적하기에 좋다.
+
+## 존재의 이유
+* AutoCloseable의 close 메소드의 안전망 역할로 Cleaner와 Finalizer를 사용할 수 있다.
+* 네이티브 객체를 회수 할 때. (GC는 자바 객체만 회수한다.)
+
+# 9. try-finally보다는 try-with-resources를 사용하라
+* 이 구조를 사용하려면 해당 자원이 `AutoCloseable` 인터페이스를 구현해야한다.
+* 읽기 수월하고, 오류 추적에도 좋다.
+
+try-finally로 작성한다면?
+```java
+public class Main {
+    public static void main(String[] args) throws IOException {
+        FileInputStream fin = null;
+
+        try {
+            fin = new FileInputStream("ddd");
+            fin.read();
+        } finally {
+            fin.close();
+        }
+    }
+}
+```
+없는 파일이라서 FileInputStream 생성 중에, `FileNotFoundException`이 발생해야 한다.
+</br> 하지만 코드를 실행했을 때, 발생하는 예외는 NPE다. 
+</br> 두 번째 예외가, 첫 번째 예외를 집어삼켜버린다.
+
+try-with-resources 문으로 작성해보자.
+```java
+public class Main {
+    public static void main(String[] args) throws IOException {
+        try (FileInputStream fin = new FileInputStream("ddd")) {
+            fin.read();
+        }
+    }
+}
+```
+FileNotFoundException이 발생하면서 제대로된 원인을 파악할 수 있다.
+
+```java
+try (FileInputStream fin = new FileInputStream("ddd")) {
+    // logic
+} catch (FileNotFoundException e) {
+    throw new RuntimeException(e);
+} catch (IOException e) {
+    throw new RuntimeException(e);        
+```
+위 처럼 catch 문과 함께 사용하자.
