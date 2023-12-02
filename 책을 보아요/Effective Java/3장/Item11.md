@@ -1,7 +1,7 @@
 # equals를 재정의하려거든 hashCode도 재정의하라
 같이 재정의하지 않으면, hashCode 일반 규약을 어겨, HashMap이나 HashSet 같은 컬렉션의 원소로 사용할 때 문제를 일으킬 것이다.
 
-![hash](images/hash.png)
+![hash](https://github.com/opgumo3/gumo-study/assets/38172794/58d94bb7-3d24-4c77-a6ac-3509f50272c7)
 </br>refer : Tecoble </br>
 >hashCode가 다르면 equals를 하기도 전에, 다른 객체라고 판단함.
 
