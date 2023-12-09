@@ -60,7 +60,7 @@ public class Main {
 public class Main {
 
     public static void main(String[] args) {
-        // 매개변수화된 컬렉션 사용
+        // 매개변수화 타입 사용
         Box<Fruit> fruitBox = new Box<>(); 
 
         fruitBox.push(new Thing()); // 컴파일 에러
