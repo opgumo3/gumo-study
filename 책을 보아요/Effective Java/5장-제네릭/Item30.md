@@ -85,3 +85,6 @@ public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T
 > == Java의 정석 12장 == </br>
 `<? extends T>` T와 그 자손들만 가능 </br>
 `<? super T>` T와 그 조상들만 가능
+
+> 👍 핵심 정리 </br>
+클라이언트에서 입력 매개변수와 반환값을 명시적으로 형변환해야 하는 메서드보다, 제너릭 메서드가 더 안전하며 사용하기 쉽다.
