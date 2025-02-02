@@ -4,5 +4,9 @@
 - 사용자는 관여하지 않게 하면서, 백그라운드에서 일을 처리하는 역할과 이름이 걸맞다. 
 - https://ko.wikipedia.org/wiki/%EB%8D%B0%EB%AA%AC_(%EC%BB%B4%ED%93%A8%ED%8C%85)
 
-### NIC (Network Interface Card)
+### NIC 
+- Network Interface Card
 - 컴퓨터를 네트워크에 연결하여 통신하기 위해 사용하는 하드웨어 장치
+
+### YAML
+- Ain't Markup Language
