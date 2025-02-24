@@ -46,7 +46,7 @@ public class IntCalculator extends RecursiveTask<Integer> {
 ```
 
 ```
-# 0~25 까지의 Intstream 에 대해 compute 했을 때.
+# 0~25 까지의 Intstream 에 대해 fork join 으로 합 계산.
 main -- start 21, end 25, sum 90 
 ForkJoinPool.commonPool-worker-4 -- start 6, end 9, sum 21 
 ForkJoinPool.commonPool-worker-5 -- start 18, end 21, sum 57 
@@ -65,4 +65,9 @@ ForkJoinPool.commonPool-worker-3 -- start 3, end 6, sum 12
 main -- start 21, end 25, sum 90 
 ForkJoinPool.commonPool-worker-5 -- start 12, end 15, sum 39 
 ForkJoinPool.commonPool-worker-1 -- start 0, end 3, sum 3 
+```
+- 순서는 달라질 수 있음.
+
+```
+❓
 ```

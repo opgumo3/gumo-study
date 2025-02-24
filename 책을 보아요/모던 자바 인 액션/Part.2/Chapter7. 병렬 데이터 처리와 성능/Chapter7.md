@@ -64,5 +64,20 @@ public class BenchMarkTest {
 
 ### RecursiveTask 구현
 ![Recursive Task 구조](images/recursive_task_structure.png)
-- V : 
+- V : 결과 타입
 - 실습 : [RecursiveTask 실습](RecursiveTask_Prac.md)
+
+### ForkJoinTask 메소드
+#### join() 
+- get() 메소드와 다르게 비정상적인 결과일 때 `ExecutionException` 이 아닌 `RuntimeException` 이나 `Error` 를 발생. 호출자 스레드의 인터럽트로 `InterruptedException` 예외를 발생시키며 갑자기 중단되지 않음.
+
+#### get()
+- 계산이 완료될 때 까지 기다리고, 결과를 조회 
+- throws
+    - CancellationException
+    - ExecutionException
+    - InterruptedException
+
+### 포크/조인 프레임워크 팁
+- `join` 메소드는 태스크가 완료될 때까지, 호출자를 블록시키기 때문에 서브태스크를 모두 시작한 다음에 join 을 호출.
+- RecursiveTask 내부에서 `invoke` 메서드는 순차 코드에서 병렬 계산을 시작할 때만 사용하고, `compute` 나 `fork` 메서드를 사용.
