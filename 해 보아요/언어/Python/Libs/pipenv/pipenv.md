@@ -18,8 +18,10 @@ pipenv install <package>
 ### 설치 예시
 
 ```bash
-# pipenv 패키지 설치 시 로그
+# fastapi 설치
 >> pipenv install fastapi
+
+# 패키지 설치 시 로그
 Courtesy Notice:
 Pipenv found itself running within a virtual environment,  so it will automatically use that environment, instead of  creating its own for any project. You can set
 PIPENV_IGNORE_VIRTUALENVS=1 to force pipenv to ignore that environment and create  its own instead.                                                                
@@ -62,7 +64,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*" # 추가됨.
+fastapi = "*" # 추가. 버전을 지정하지 않아 * 값.
 
 [dev-packages]
 
@@ -90,6 +92,16 @@ python_full_version = "3.13.2"
 | --- | --- |
 | Pipfile | <li>프로젝트에서 필요한 패키지들의 목록을 정의하는 파일. </br><li>패키지를 설치하거나 제거할 때 이 파일 사용. |
 | Pipfile.lock | <li>Pipfile에 정의된 패키지들의 정확한 버전을 고정하여 기록하는 파일. <li>이 파일은 프로젝트의 정확한 환경을 재현할 수 있게 함.|
+
+### 버전 명시
+- https://pipenv.pypa.io/en/latest/specifiers.html#specifying-versions-of-a-package
+- 명시하지 않은 경우
+    - `*`: 모든 버전 허용
+- `==`: 특정 버전 고정
+- `>=`: 최소 버전 지정
+- `<=`: 최대 버전 지정
+- `~=`, `^`: 명시한 버전을 벗어나지 않는 선의 버전
+    - `major.minor.micro`
 
 ## 가상 환경 실행
 ```bash
