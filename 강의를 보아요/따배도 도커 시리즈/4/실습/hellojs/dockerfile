@@ -1,0 +1,4 @@
+FROM node:12
+WORKDIR /workdir
+COPY hello.js .
+CMD ["node", "hello.js"]

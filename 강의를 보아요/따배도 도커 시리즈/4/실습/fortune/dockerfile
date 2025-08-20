@@ -1,0 +1,4 @@
+FROM debian:11
+COPY webpage.sh .
+RUN apt-get update && apt-get install -y fortune && chmod 755 webpage.sh
+CMD [ "./webpage.sh" ]
