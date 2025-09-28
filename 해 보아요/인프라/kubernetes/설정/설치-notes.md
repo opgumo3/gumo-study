@@ -1,4 +1,5 @@
 # container runtime
+- ✅ 컨테이너를 실제로 실행하고 관리하는 소프트웨어
 - 파드를 실행할 수 있도록 클러스터의 각 노드에는 컨테이너 런타임을 설치해야함.
 - **Kubernetes 1.34** 버전부터는, **Container Runtime Interface(CRI)** 규격을 지킨 런타임만 쓸 수 있음
 
@@ -27,6 +28,7 @@ CRI-O
 Docker Engine (직접 지원 X)
 - 도커는 쿠버네티스 내부에 포함(embedded)되도록 설계되지 않았음.
 	- 도커는 CRI 를 준수하지 않아 Dockershim 이라는 다른 도구를 사용해야함.
+    - ✅ K8S 에서 정의한 컨테이너 런타임과 통신하기 위한 표준 API. kubelet이 컨테이너 런타임에 명령을 보낼 때 쓰는 인터페이스
 - Kubernetes 1.24부터 dockershim 이 제거되어 직접 사용 불가.
 - Mirantis + Docker 커뮤니티에서 개발한 cri-docrkd 어댑터를 사용하여 사용할 수 있음.
 
@@ -82,3 +84,60 @@ cgroupDriver: systemd
 4. Kubespray:
     - Ansible 플레이북, 인벤토리, 프로비저닝 도구, 그리고 범용 OS/Kubernetes 클러스터 구성 관리 작업에 필요한 도메인 지식을 모아둔 구성체. 
     - 내부적으로 kubeadm을 사용하지만, 복잡한 과정을 자동화
+
+## kubeadm
+### 시스템 요구사항
+- 호환되는 Linux 호스트
+    - Debian 및 Red Hat 계열의 Linux 배포판을 지원.
+    - 패키지 매니저가 없는 배포판을 위한 지침도 제공됨
+- 메모리 (RAM)
+    - 머신(노드)당 최소 **2GB 이상**이 필요. 이보다 적으면 애플리케이션을 실행할 공간이 부족
+- CPU
+    - **컨트롤 플레인(Control Plane) 노드**는 **2개 이상의 CPU**가 필요
+- 네트워크 연결
+    - 클러스터의 모든 머신(노드) 간에 완전한 통신이 가능해야 함. 
+    - 공용 또는 사설 네트워크 모두 사용 가능
+- 고유 식별자
+    - 모든 노드는 각기 다른 고유한 **호스트 이름(hostname), MAC 주소, product_uuid**를 가져야 함
+	    - Mac 주소는 `iplinkg` or `ipconfig -a` 로 확인
+	    - uuid 는 `sudo cat /sys/class/dmi/id/product_uuid`
+- 포트(Port) 개방
+    - 쿠버네티스가 사용하는 특정 포트들이 각 머신에서 개방되어 있어야 함.
+    - 포트는 아래 `Control Plane 포트`, `Worker Node 포트` 확인.
+    - 커맨드 예시 : `nc 127.0.0.1 10250 -zv -w 2` 
+        - `connection refused` 결과여야 함. (대상에 도달했지만, 해당 포트에 서비스가 안 떠 있어서 닫힘)
+- swap 설정
+	- kubelet 은 노드에 swap memory가 켜져 있으면 시작하지 않고 실패
+	- swap을 끄거나, kubelet이 swap을 허용하도록 설정해야 함.
+```
+✅ swap
+- 메모리가 부족할 때, 디스크 일부 공간을 메모리 처럼 사용하는 것/영역.
+- 실제 메모리보다 속도 느림.
+- K8S 에서 정확한 메모리 사용을 감지하지 못할 수 있음.
+```
+- glibc 확인
+    - 동적 링크(dynamic linking) 을 이용하여 설치되기 때문에 필요.
+    - `ldd --version` 으로 확인 가능
+
+### Control Plane 포트
+| Protocol | Direction | Port Range | Purpose | Used By |
+| --- | --- | --- | --- | --- |
+| TCP | Inbound   | 6443       | Kubernetes API server   | All                  |
+| TCP | Inbound   | 2379-2380  | etcd server client API  | kube-apiserver, etcd |
+| TCP | Inbound   | 10250      | Kubelet API             | Self, Control plane  |
+| TCP | Inbound   | 10259      | kube-scheduler          | Self                 |
+| TCP | Inbound   | 10257      | kube-controller-manager | Self  |
+
+### Worker Node 포트
+
+| Protocol | Direction | Port Range  | Purpose | Used By |
+| ---| --- | --- | --- | --- |
+| TCP | Inbound   | 10250       | Kubelet API        | Self, Control plane  |
+| TCP | Inbound   | 10256       | kube-proxy         | Self, Load balancers |
+| TCP | Inbound   | 30000-32767 | NodePort Services† | All                  |
+| UDP | Inbound   | 30000-32767 | NodePort Services† | All                  |
+
+### 설치 항목
+- **kubeadm** : 클러스트를 bootstrap 하는 명령어.
+- **kubelet** : 클러스트의 모든 머신에서 실행되고, 파드나 컨테이너 시작과 같은 작업을 수행하는 컴포넌트.
+- **kubectl** : 클러스너에 명령하기 위한 명령어. CLI

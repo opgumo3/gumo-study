@@ -2,6 +2,9 @@ Server
 - Main Node : 1대
 - Worker Node : 2대
 
+OS
+- Ubuntu 22.04
+
 Conatainer Runtime
 - containerd : v2.1.4
 - runc : 1.3.1
@@ -9,6 +12,9 @@ Conatainer Runtime
 
 K8S Deployment Tool
 - kubeadm
+
+K8S Version
+1.34
 
 ## ✔️ containerd
 
@@ -74,3 +80,54 @@ sudo sysctl --system
 # 1로 설정되었는지 확인
 sysctl net.ipv4.ip_forward
 ```
+
+## ✔️ kubeadm 설치
+### swap off
+```sh
+# 차근차근 버전
+# swap 끔. 재부팅 전까지 유지
+$ sudo swapoff -a
+
+# 영구 적용
+$ sudo vi /etc/fstab
+
+# 아래와 같은 라인을 # 으로 주석처리
+# /swap.img    none    swap    sw    0    0
+# UUID=xxxx-xxxx   none   swap   sw   0  0
+
+# 저장, 나가기
+$ :wq
+
+# ------ 해당 내용 없음 ------
+# 아래 명령어로 현재 시스템에서 활성화된 swap 영역을 보여줌. 출력이 없다면 swap 없음.
+$ swapon --show
+
+
+# 바로바로 버전
+$ swapoff -a && sed -i '/swap/s/^/#/' /etc/fstab
+```
+
+### 설치
+```sh
+sudo apt-get update
+
+sudo mkdir -p -m 755 /etc/apt/keyrings
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+sudo systemctl enable --now kubelet
+```
+
+### Control Plane
+```sh
+kubeadm init --control-plane-endpoint "k8s-api.local:6443"
+```
+- `--control-plane-endpoint` : API 서버에 접근하는 통로를 하나로 통일.
+    - 🤖 이후 endpoint 설정/변경이 인증서 재발행과 관련됨.
+    - DNS 이름 사용하여 Control Plane 을 가르키도록 함.
