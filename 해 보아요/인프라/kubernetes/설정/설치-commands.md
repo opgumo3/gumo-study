@@ -5,6 +5,9 @@ Server
 OS
 - Ubuntu 22.04
 
+Architecture
+- amd64
+
 Conatainer Runtime
 - containerd : v2.1.4
 - runc : 1.3.1
@@ -37,7 +40,7 @@ $ systemctl enable --now containerd # 부팅 시 시작
 
 ### (2) runc 설치
 ```sh
-$ wget https://github.com/opencontainers/runc/releases/download/v1.3.1/runc.arm64
+$ wget https://github.com/opencontainers/runc/releases/download/v1.3.1/runc.amd64
 $ install -m 755 runc.amd64 /usr/local/sbin/runc
 ```
 
@@ -128,6 +131,14 @@ sudo systemctl enable --now kubelet
 ```sh
 kubeadm init --control-plane-endpoint "k8s-api.local:6443"
 ```
-- `--control-plane-endpoint` : API 서버에 접근하는 통로를 하나로 통일.
-    - 🤖 이후 endpoint 설정/변경이 인증서 재발행과 관련됨.
-    - DNS 이름 사용하여 Control Plane 을 가르키도록 함.
+- `--control-plane-endpoint` : API 서버에 접근하는 통로를 하나로 통일. IP 나 DNS 를 사용할 수 있음.
+    - kubeadm 에서는 이 옵션 없이 생성된 단일 Control Plane 클러스터는 이후에 HA 클러스터로 전환하는 것이 지원되지 않음.
+    - 🤖 이후 endpoint 설정이나 변경은 인증서 재발행과 관련되어서 어렵다고 함.
+    - 현재는 DNS 이름 사용하여 설정. /etc/hosts 등록.
+
+```sh
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+- root 가 아닌 사용자가 kubectl 사용할 수 있도록 위 커맨드 실행
