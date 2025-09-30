@@ -23,9 +23,9 @@ K8S Version
 
 ### (1) containerd 설치
 ```sh
-$ wget https://github.com/containerd/containerd/releases/download/v2.1.4/containerd-2.1.4-linux-amd64.tar.gz -O containerd-2.1.4-linux-amd64.tar.gz
+$ wget https://github.com/containerd/containerd/releases/download/v2.1.4/containerd-2.1.4-linux-amd64.tar.gz -O ~/containerd-2.1.4-linux-amd64.tar.gz
 
-$ tar Cxzvf /usr/local/bin containerd-2.1.4-linux-amd64.tar.gz
+$ tar Cxzvf /usr/local ~/containerd-2.1.4-linux-amd64.tar.gz
 >> bin/
 >> bin/containerd-stress
 >> bin/ctr
@@ -33,14 +33,19 @@ $ tar Cxzvf /usr/local/bin containerd-2.1.4-linux-amd64.tar.gz
 >> bin/containerd-shim-runc-v2
 
 # systemd 로 실행하기 위해 containerd.service 다운로드
-$ wget https://raw.githubusercontent.com/containerd/containerd/main/containerd.service -o /usr/local/lib/systemd/system/containerd.service
+$ mkdir -p /usr/local/lib/systemd/system/
+
+$ wget https://raw.githubusercontent.com/containerd/containerd/main/containerd.service -O /usr/local/lib/systemd/system/containerd.service
+
 $ systemctl daemon-reload
-$ systemctl enable --now containerd # 부팅 시 시작
+
+# 부팅 시 시작
+$ systemctl enable --now containerd
 ```
 
 ### (2) runc 설치
 ```sh
-$ wget https://github.com/opencontainers/runc/releases/download/v1.3.1/runc.amd64
+$ wget https://github.com/opencontainers/runc/releases/download/v1.3.1/runc.amd64 -O ~/runc.amd64
 $ install -m 755 runc.amd64 /usr/local/sbin/runc
 ```
 
@@ -59,9 +64,13 @@ $ mkdir -p /etc/containerd
 $ containerd config default > /etc/containerd/config.toml
 
 $ vi /etc/containerd/config.toml
+# 수정해야하는 옵션 아래 방향으로 검색
 :/plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options
+# n : 해당 방향으로 다음 결과 조회
+# N : 역 방향으로 다음 결과 조회
 
-# SystemCgroup = true 로 변경
+# 아래 설정 추가 혹은 변경
+SystemCgroup = true 
 
 $ systemctl restart containerd
 ```
@@ -112,6 +121,8 @@ $ swapoff -a && sed -i '/swap/s/^/#/' /etc/fstab
 
 ### 설치
 ```sh
+# kubelet, kubeadm, kubectl 설치
+
 sudo apt-get update
 
 sudo mkdir -p -m 755 /etc/apt/keyrings
@@ -134,7 +145,11 @@ kubeadm init --control-plane-endpoint "k8s-api.local:6443"
 - `--control-plane-endpoint` : API 서버에 접근하는 통로를 하나로 통일. IP 나 DNS 를 사용할 수 있음.
     - kubeadm 에서는 이 옵션 없이 생성된 단일 Control Plane 클러스터는 이후에 HA 클러스터로 전환하는 것이 지원되지 않음.
     - 🤖 이후 endpoint 설정이나 변경은 인증서 재발행과 관련되어서 어렵다고 함.
-    - 현재는 DNS 이름 사용하여 설정. /etc/hosts 등록.
+    - 현재는 DNS 이름 사용하여 설정. Control Plane 과 Worker Node 의 /etc/hosts 에 아래처럼 등록
+```
+# /etc/hosts
+[Control Plane IP] k8s-api.local
+```
 
 ```sh
 mkdir -p $HOME/.kube
@@ -142,3 +157,12 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 - root 가 아닌 사용자가 kubectl 사용할 수 있도록 위 커맨드 실행
+
+#### 👉 token 이 만료되었을 때
+```sh
+# 아래 명령어로 발급된 토큰과 만료를 확인할 수 있음.
+kubeadm token list
+
+# 토큰 새로 생성
+kubeadm token create --print-join-command
+```
