@@ -156,3 +156,15 @@ cgroupDriver: systemd
 - **kubeadm** : 클러스트를 bootstrap 하는 명령어.
 - **kubelet** : 클러스트의 모든 머신에서 실행되고, 파드나 컨테이너 시작과 같은 작업을 수행하는 컴포넌트.
 - **kubectl** : 클러스너에 명령하기 위한 명령어. CLI
+
+# Pod Network add-on
+- 클러스터 전체의 복잡한 통신 요구 사항을 해결하는 CNI 를 의미.
+- 서로 다른 노드에 분산되어 있는 모든 Pod들이 마치 하나의 로컬 네트워크에 있는 것처럼 직접 통신할 수 있도록 해주는 것이 핵심
+
+## 주의 사항
+- 네트워크가 설치되기 전까지 Cluster DNS (CoreDNS) 는 동작하지 않음.
+- Pod가 사용할 네트워크 대역(CIDR)은 서버 자체(호스트)가 사용하는 네트워크 대역과 겹치면 안됨
+    - 호스트 네트워크와 겹치지 않은 CIDR 블럭을 지정할 수 있음.
+        - kubeadm init 시 `--pod-network-cidr` 옵션으로 지정하고 CNI 플러그인(Calico/Flannel)의 YAML 설정 파일에도 해당 대역을 사용하도록 수동으로 수정해야함.
+- `kubeadm` 으로 설정했다면 RBAC (Role Based Access Control) 사용을 하도록 하기 때문에, Pod network plugin 도 RBAC 를 지원해야함.
+- 클러스터에 IPv6 네트워킹을 사용하려면, Pod network plugin이 이를 지원해야 함.

@@ -17,7 +17,11 @@ K8S Deployment Tool
 - kubeadm
 
 K8S Version
-1.34
+- Client Version: v1.34.1
+- Kustomize Version: v5.7.1
+
+CNI
+- Weave Net
 
 ## ✔️ containerd
 
@@ -166,3 +170,18 @@ kubeadm token list
 # 토큰 새로 생성
 kubeadm token create --print-join-command
 ```
+
+### Worker Node
+- Control Plane 에서 `kubeadm init` 해서 출력된 join 문 이용.
+```sh
+kubeadm join k8s-api.local:6443 --token ... --discovery-token-ca-cert-hash ...
+```
+
+## ✔️ Pod Network add-on 설치 - Weave Net
+- Control Plane 에서 실행
+```sh
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.34/net.yaml
+```
+
+### 👉 error validating ...
+- 실행한 사용자에 대해 kubectl 을 사용할 수 있도록 설정되어있는 상태여야함.
