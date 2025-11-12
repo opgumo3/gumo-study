@@ -1,3 +1,7 @@
+# K8S 클러스터 설정
+
+진행 시 알게 된 개념을 위주로 정리한 내용입니다.
+
 # container runtime
 - ✅ 컨테이너를 실제로 실행하고 관리하는 소프트웨어
 - 파드를 실행할 수 있도록 클러스터의 각 노드에는 컨테이너 런타임을 설치해야함.
@@ -33,6 +37,11 @@ Docker Engine (직접 지원 X)
 - Mirantis + Docker 커뮤니티에서 개발한 cri-docrkd 어댑터를 사용하여 사용할 수 있음.
 
 ## containerd 설치
+
+systemd 로 돌리기 위해서는 아래의 페쓰에 있는 곳에 *.service 파일을 작성하고, systemd 에 등록해야함. (systemctl daemon-reload # 서비스 설정 갱신)
+wget 안되면 curl -o 로 할 수 있음.
+
+- systemd-analyze unit-paths
 ### containerd
 - 컨테이너 런타임의 핵심 데몬.
 - 쿠버네티스에서 Pod 생성하면 kubelet → CRI(Container Runtime Interface) → containerd 순서로 호출됨.
