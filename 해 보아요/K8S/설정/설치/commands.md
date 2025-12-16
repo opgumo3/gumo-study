@@ -30,10 +30,10 @@
 ### (1) containerd 설치
 ```sh
 # 1. 아키텍처에 맞는 containerd 파일 다운로드
-$ wget https://github.com/containerd/containerd/releases/download/v2.1.4/containerd-2.1.4-linux-amd64.tar.gz -O ~/containerd-2.1.4-linux-amd64.tar.gz
+$ wget https://github.com/containerd/containerd/releases/download/v2.1.5/containerd-2.1.5-linux-amd64.tar.gz -O ~/containerd-2.1.5-linux-amd64.tar.gz
 
 # 2. 다운로드 한 파일을 /usr/local 에 압축 해제
-$ tar Cxzvf /usr/local ~/containerd-2.1.4-linux-amd64.tar.gz
+$ tar Cxzvf /usr/local ~/containerd-2.1.5-linux-amd64.tar.gz
 
 # 3. containerd 를 systemd 로 실행하기 위해 설정
 # 3-1. .service 정의 파일 위한 디렉토리 생성
@@ -64,10 +64,10 @@ $ install -m 755 runc.amd64 /usr/local/sbin/runc
 $ mkdir -p /opt/cni/bin
 
 # 2. cni plugin 다운로드
-$ wget https://github.com/containernetworking/plugins/releases/download/v1.8.0/cni-plugins-linux-arm64-v1.8.0.tgz
+$ wget https://github.com/containernetworking/plugins/releases/download/v1.8.0/cni-plugins-linux-amd64-v1.8.0.tgz
 
 # 3. 2번의 파일을 1번에 압축 해제
-$ tar Cxzvf /opt/cni/bin cni-plugins-linux-arm64-v1.8.0.tgz
+$ tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.8.0.tgz
 ```
 
 ### (4) cgroup 드라이버 설정
@@ -91,7 +91,7 @@ $ vi /etc/containerd/config.toml
 :/plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options
 
 # 4-2. 아래 설정 추가 혹은 변경
-SystemCgroup = true 
+SystemdCgroup = true 
 
 # 4-3. [ESC] > [:wq] > [ENTER] 입력하여 설정 저장
 
